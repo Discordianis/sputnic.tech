@@ -1,6 +1,7 @@
 import {makeAutoObservable} from "mobx";
-import AuthStore from "./authStore.tsx";
 import {IRoute} from "../interfaces/routeInterface.tsx";
+import tokenStore from "./tokenStore.tsx";
+import AuthStore from "./authStore.tsx";
 
 class RouteStore {
     route: IRoute[] = [];
@@ -14,7 +15,7 @@ class RouteStore {
             const response = await fetch("https://sputnic.tech/mobile_api/getRoutesPoint", {
                 method: "POST",
                 headers: {
-                    Authorization: `Bearer ${AuthStore.token}`,
+                    Authorization: `Bearer ${tokenStore.token}`,
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ id, date_start: dateStart, date_end: dateEnd }),
@@ -23,6 +24,9 @@ class RouteStore {
             const data = await response.json();
             if (data) {
                 this.route = data
+            }
+            if (data.status === '401') {
+                await AuthStore.refresh()
             }
         } catch (error) {
             console.error("Ошибка загрузки маршрута:", error);

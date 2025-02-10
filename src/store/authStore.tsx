@@ -30,7 +30,8 @@ class AuthStore implements IAuthStore {
             if (data.token && data.refresh_token) {
                 this.token = data.token;
                 this.refreshToken = data.refresh_token;
-                console.log("Токен обновлен:", data.refresh_token);
+                localStorage.setItem('token', data.token)
+                window.location.reload()
                 return true;
             } else {
                 console.log("Ошибка: неверный ответ от сервера");
@@ -42,20 +43,24 @@ class AuthStore implements IAuthStore {
     }
 
     async refresh(): Promise<boolean> {
-        if (!this.refreshToken) return false;
+        if (!this.refreshToken) {
+            return false;
+        }
 
         try {
             const response = await fetch("https://sputnic.tech/mobile_api/token/refresh", {
                 method: "POST",
+                credentials: 'include',
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${this.refreshToken}`
+                    "Authorization": `Bearer ${this.refreshToken}`,
                 }
             });
 
             const data = await response.json();
             if (data.token) {
                 this.token = data.token;
+                localStorage.setItem('token', data.token)
                 return true;
             }
         } catch (error) {

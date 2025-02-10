@@ -11,6 +11,17 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --dark-bg: #031b25;
+  --dark-input-bg: #293c45;
+  --button-color: #267abe;
+  --button-color-hover: #3e92d6;
+  --border-color: #7a7c8f 1px solid
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0
 }
 
 a {
