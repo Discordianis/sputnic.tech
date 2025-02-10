@@ -2,15 +2,24 @@ import React, { Suspense, useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
 import RouteStore from "../../store/routeStore.tsx";
 import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer, Polyline, Marker } from "react-leaflet";
+import {MapContainer, TileLayer, Polyline, Marker, useMap} from "react-leaflet";
 import { LatLngExpression } from "leaflet";
-import { CategoryScale, Chart as ChartJS, Legend, LinearScale, LineElement, PointElement, Tooltip } from "chart.js";
+import {
+    ActiveElement,
+    CategoryScale,
+    Chart as ChartJS,
+    Legend,
+    LinearScale,
+    LineElement,
+    PointElement,
+    Tooltip
+} from "chart.js";
 import { Line } from "react-chartjs-2";
 import "./MapChart.css";
 import routeStore from "../../store/routeStore.tsx";
 import { toJS } from "mobx";
 import Loading from "../../components/Loading/Loading.tsx";
-import {RouteData, RoutePoint} from "../../interfaces/routeInterface.tsx";
+import {Reserve, RouteData, RoutePoint} from "../../interfaces/routeInterface.tsx";
 import moment from "moment";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
@@ -19,6 +28,17 @@ const MapChart: React.FC = observer(() => {
     const [routeData, setRouteData] = useState<RouteData | null>(null);
     const [filter, setFilter] = useState("7d");
     const [load, setLoad] = useState(true);
+    const [selectedMetrics, setSelectedMetrics] = useState<string[]>(["speed"]);
+    const [selectedPoint, setSelectedPoint] = useState<{ lat: number; lng: number } | null>(null);
+
+    const handleChartClick = (_: never, elements: ActiveElement[]) => {
+        if (!elements.length) return;
+        const index = elements[0].index;
+        const point = filteredPoints[index];
+        if (point) {
+            setSelectedPoint({ lat: point.lat, lng: point.lng });
+        }
+    };
 
     useEffect(() => {
         if (routeStore.route) {
@@ -51,27 +71,52 @@ const MapChart: React.FC = observer(() => {
 
 
     const filteredPoints = filterData(routePoints);
-    const labels = filteredPoints.map((point) => moment(point.datetime).format('DD.MM.YYYY, HH:MM'));
+    const labels = filteredPoints.map((point) => moment(point.datetime).format('DD.MM.YYYY, HH:mm'));
+
+    const specs = ['speed', 'voltage', 'alt', 'direction', 'fuel1', 'ignition']
+
+    const colors: { [key: string]: string } = {
+        speed: "rgb(255, 99, 132)",
+        voltage: "rgb(54, 162, 235)",
+        alt: "rgb(255, 206, 86)",
+        direction: "rgb(75, 192, 192)",
+        fuel1: "rgb(153, 102, 255)",
+        ignition: "rgb(255, 159, 64)",
+    };
+    const bgcolors: { [key: string]: string } = {
+        speed: "rgb(97,38,51)",
+        voltage: "rgb(18,50,73)",
+        alt: "rgb(90,73,30)",
+        direction: "rgb(28,73,73)",
+        fuel1: "rgb(45,30,76)",
+        ignition: "rgb(78,49,20)",
+    };
+
+    const handleCheckboxChange = (metric: string) => {
+        setSelectedMetrics((prev) =>
+            prev.includes(metric) ? prev.filter((m) => m !== metric) : [...prev, metric]
+        );
+    };
 
     const data = {
         labels: labels,
-        datasets: [
-            {
-                label: "Speed",
-                data: filteredPoints.map((point: RoutePoint) => point.speed),
-                borderColor: "rgb(255, 99, 132)",
-                backgroundColor: "rgba(255, 99, 132, 0.5)",
-            }
-        ],
+        datasets: selectedMetrics.map((metric) => ({
+            label: metric,
+            data: filteredPoints.map((point: RoutePoint) => point.reserve[metric as keyof Reserve] as number),
+            borderColor: colors[metric as keyof typeof colors],
+            backgroundColor: bgcolors[metric as keyof typeof colors],
+        }))
     };
 
     const options = {
         responsive: true,
         maintainAspectRatio: false,
+        onClick: handleChartClick,
         scales: {
             x: {
                 ticks: {
-                    maxRotation: 0
+                    maxRotation: 0,
+                    display: false
                 }
             }
         },
@@ -103,7 +148,7 @@ const MapChart: React.FC = observer(() => {
             <div className="map_chart_root">
                 <div className="map">
                     <MapContainer
-                        center={filteredPoints.length > 0 ? [filteredPoints[0]?.lat, filteredPoints[0]?.lng] : [52, 50] as LatLngExpression}
+                        center={selectedPoint || (filteredPoints.length > 0 ? [filteredPoints[0].lat, filteredPoints[0].lng] : [52, 50]) as LatLngExpression}
                         zoom={10}
                         style={{ height: "500px", width: "100%" }}
                     >
@@ -111,16 +156,26 @@ const MapChart: React.FC = observer(() => {
 
                         {filteredPoints.length > 0 && (
                             <>
-                                <Polyline
-                                    positions={filteredPoints.map((point) => [point.lat, point.lng]) as LatLngExpression[]}
-                                    pathOptions={{ color: "blue" }}
-                                />
-                                <Marker position={[filteredPoints[0]?.lat, filteredPoints[0]?.lng] as LatLngExpression} />
+                                <Polyline positions={filteredPoints.map((point) => [point.lat, point.lng]) as LatLngExpression[]} pathOptions={{ color: "blue" }} />
+                                <Marker position={[filteredPoints[0].lat, filteredPoints[0].lng] as LatLngExpression} />
                             </>
                         )}
+
+                        {selectedPoint && <Marker position={[selectedPoint.lat, selectedPoint.lng] as LatLngExpression} />}
+                        {selectedPoint && <MapCenter position={selectedPoint} />}
                     </MapContainer>
                 </div>
                 <div className="chart" style={{ height: "435px" }}>
+                    {specs.map((metric, index) => (
+                        <label key={index}>
+                            <input
+                                type="checkbox"
+                                checked={selectedMetrics.includes(metric)}
+                                onChange={() => handleCheckboxChange(metric)}
+                            />
+                            {metric}
+                        </label>
+                    ))}
                     <select value={filter} onChange={(e) => setFilter(e.target.value)}>
                         <option value="1h">За час</option>
                         <option value="2h">За 2 часа</option>
@@ -136,5 +191,14 @@ const MapChart: React.FC = observer(() => {
         </Suspense>
     );
 });
+
+const MapCenter: React.FC<{ position: { lat: number; lng: number } }> = ({ position }) => {
+    const map = useMap();
+    useEffect(() => {
+        map.setView([position.lat, position.lng], 12);
+    }, [position, map]);
+
+    return null;
+};
 
 export default MapChart;
