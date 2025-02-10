@@ -4,7 +4,7 @@ import tokenStore from "./tokenStore.tsx";
 import AuthStore from "./authStore.tsx";
 
 class RouteStore {
-    route: IRoute[] = [];
+    route: IRoute = [];
 
     constructor() {
         makeAutoObservable(this);
