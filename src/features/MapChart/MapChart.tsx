@@ -151,7 +151,7 @@ const MapChart: React.FC = observer(() => {
                     <MapContainer
                         center={selectedPoint || (filteredPoints.length > 0 ? [filteredPoints[0].lat, filteredPoints[0].lng] : [52, 50]) as LatLngExpression}
                         zoom={10}
-                        style={{ height: "500px", width: "100%" }}
+                        style={{ width: "100%" }}
                     >
                         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 

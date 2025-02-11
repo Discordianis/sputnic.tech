@@ -29,3 +29,19 @@
     }
   }
 }
+
+.map_chart_root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.map {
+  flex-grow: 1;
+  min-height: 40vh;
+}
+
+.chart {
+  flex-grow: 1;
+  min-height: 40vh;
+}
