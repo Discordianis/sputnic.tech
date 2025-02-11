@@ -30,7 +30,8 @@ class AuthStore implements IAuthStore {
             if (data.token && data.refresh_token) {
                 this.token = data.token;
                 this.refreshToken = data.refresh_token;
-                localStorage.setItem('token', data.token)
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('refreshToken', data.refresh_token);
                 window.location.reload()
                 return true;
             } else {
@@ -43,31 +44,32 @@ class AuthStore implements IAuthStore {
     }
 
     async refresh(): Promise<boolean> {
-        if (!this.refreshToken) {
-            return false;
-        }
-
         try {
+            const refreshToken = localStorage.getItem('refreshToken');
             const response = await fetch("https://sputnic.tech/mobile_api/token/refresh", {
                 method: "POST",
-                credentials: 'include',
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${this.refreshToken}`,
-                }
+                },
+                body: JSON.stringify({ refresh_token: refreshToken })
             });
 
             const data = await response.json();
-            if (data.token) {
+            console.log("Ответ сервера на refresh:", data);
+
+            if (data.token && data.refresh_token) {
                 this.token = data.token;
-                localStorage.setItem('token', data.token)
-                return true;
+                this.refreshToken = data.refresh_token;
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('refreshToken', data.refresh_token);
+                window.location.reload()
             }
         } catch (error) {
             console.error("Ошибка обновления токена:", error);
         }
         return false;
     }
+
 }
 
 const authStore = new AuthStore();

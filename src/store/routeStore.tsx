@@ -10,7 +10,7 @@ class RouteStore {
         makeAutoObservable(this);
     }
 
-    async loadRoute(id: number, dateStart: string, dateEnd: string) {
+    async loadRoute(id: number, dateStart: string, dateEnd: string): Promise<void> {
         try {
             const response = await fetch("https://sputnic.tech/mobile_api/getRoutesPoint", {
                 method: "POST",
@@ -25,8 +25,11 @@ class RouteStore {
             if (data) {
                 this.route = data
             }
-            if (data.status === '401') {
-                await AuthStore.refresh()
+            if (data.code === 401) {
+                const refreshed = await AuthStore.refresh();
+                if (refreshed) {
+                    return this.loadRoute(id, dateStart, dateEnd);
+                }
             }
         } catch (error) {
             console.error("Ошибка загрузки маршрута:", error);

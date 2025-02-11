@@ -21,6 +21,7 @@ import { toJS } from "mobx";
 import Loading from "../../components/Loading/Loading.tsx";
 import {Reserve, RouteData, RoutePoint} from "../../interfaces/routeInterface.tsx";
 import moment from "moment";
+import authStore from "../../store/authStore.tsx";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
@@ -41,10 +42,14 @@ const MapChart: React.FC = observer(() => {
     };
 
     useEffect(() => {
+        RouteStore.loadRoute(740, "2025-02-05 06:13:02", "2025-02-07 17:53:24").then();
+    }, []);
+
+    useEffect(() => {
         if (routeStore.route) {
             setRouteData(toJS(routeStore.route?.[740]?.[0]));
         }
-    }, [routeStore.route]);
+    }, [routeStore.route, authStore.token]);
 
     const routePoints = routeData?.route || [];
 
@@ -131,10 +136,6 @@ const MapChart: React.FC = observer(() => {
         },
     };
 
-    useEffect(() => {
-        RouteStore.loadRoute(740, "2025-02-05 06:13:02", "2025-02-07 17:53:24").then();
-    }, []);
-
     setTimeout(() => {
         setLoad(false);
     }, 2000);
@@ -165,34 +166,40 @@ const MapChart: React.FC = observer(() => {
                         {selectedPoint && <MapCenter position={selectedPoint} />}
                     </MapContainer>
                 </div>
-                <div className="chart" style={{ height: "435px" }}>
-                    {specs.map((metric, index) => (
-                        <label key={index}>
-                            <input
-                                type="checkbox"
-                                checked={selectedMetrics.includes(metric)}
-                                onChange={() => handleCheckboxChange(metric)}
-                            />
-                            {metric}
-                        </label>
-                    ))}
-                    <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-                        <option value="1h">За час</option>
-                        <option value="2h">За 2 часа</option>
-                        <option value="3h">За 3 часа</option>
-                        <option value="6h">За 6 часов</option>
-                        <option value="12h">За 12 часов</option>
-                        <option value="24h">За 24 часа</option>
-                        <option value="7d">За 7 дней</option>
-                    </select>
-                    <Line data={data} options={options} />
+                <div className="chart" style={{height: "435px"}}>
+                    <div className={'charts_header'}>
+                        <div className={'charts_checkboxes'}>
+                            {specs.map((metric, index) => (
+                                <label key={index}>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedMetrics.includes(metric)}
+                                        onChange={() => handleCheckboxChange(metric)}
+                                    />
+                                    {metric}
+                                </label>
+                            ))}
+                        </div>
+                        <div className={'charts_select'}>
+                            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+                                <option value="1h">За час</option>
+                                <option value="2h">За 2 часа</option>
+                                <option value="3h">За 3 часа</option>
+                                <option value="6h">За 6 часов</option>
+                                <option value="12h">За 12 часов</option>
+                                <option value="24h">За 24 часа</option>
+                                <option value="7d">За 7 дней</option>
+                            </select>
+                        </div>
+                    </div>
+                    <Line data={data} options={options}/>
                 </div>
             </div>
         </Suspense>
     );
 });
 
-const MapCenter: React.FC<{ position: { lat: number; lng: number } }> = ({ position }) => {
+const MapCenter: React.FC<{ position: { lat: number; lng: number } }> = ({position}) => {
     const map = useMap();
     useEffect(() => {
         map.setView([position.lat, position.lng], 12);
