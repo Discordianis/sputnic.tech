@@ -4,16 +4,7 @@ import RouteStore from "../../store/routeStore.tsx";
 import "leaflet/dist/leaflet.css";
 import {MapContainer, TileLayer, Polyline, Marker, useMap} from "react-leaflet";
 import { LatLngExpression } from "leaflet";
-import {
-    ActiveElement,
-    CategoryScale,
-    Chart as ChartJS,
-    Legend,
-    LinearScale,
-    LineElement,
-    PointElement,
-    Tooltip
-} from "chart.js";
+import {ActiveElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, LineElement, PointElement, Tooltip} from "chart.js";
 import { Line } from "react-chartjs-2";
 import "./MapChart.css";
 import routeStore from "../../store/routeStore.tsx";
@@ -151,7 +142,7 @@ const MapChart: React.FC = observer(() => {
                     <MapContainer
                         center={selectedPoint || (filteredPoints.length > 0 ? [filteredPoints[0].lat, filteredPoints[0].lng] : [52, 50]) as LatLngExpression}
                         zoom={10}
-                        style={{ width: "100%" }}
+                        style={{ width: "100%", height: "100%" }}
                     >
                         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 

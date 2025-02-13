@@ -37,12 +37,12 @@
 
 .map {
   flex-grow: 1;
-  min-height: 40vh;
+  min-height: 45vh;
 }
 
 .chart {
   flex-grow: 1;
-  min-height: 40vh;
+  min-height: 35vh;
 }
 
 /*# sourceMappingURL=MapChart.css.map */
