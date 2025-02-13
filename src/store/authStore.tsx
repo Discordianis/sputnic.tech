@@ -17,7 +17,7 @@ class AuthStore implements IAuthStore {
 
     async login(username: string, password: string): Promise<boolean> {
         try {
-            const response = await fetch("/api/mobile_api/token/login", {
+            const response = await fetch("https://sputnic.tech/mobile_api/token/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -46,7 +46,7 @@ class AuthStore implements IAuthStore {
     async refresh(): Promise<boolean> {
         try {
             const refreshToken = localStorage.getItem('refreshToken');
-            const response = await fetch("/api/mobile_api/token/refresh", {
+            const response = await fetch("https://sputnic.tech/mobile_api/token/refresh", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

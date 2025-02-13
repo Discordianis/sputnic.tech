@@ -12,7 +12,7 @@ class RouteStore {
 
     async loadRoute(id: number, dateStart: string, dateEnd: string): Promise<void> {
         try {
-            const response = await fetch("/api/mobile_api/getRoutesPoint", {
+            const response = await fetch("https://sputnic.tech/mobile_api/getRoutesPoint", {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${tokenStore.token}`,
